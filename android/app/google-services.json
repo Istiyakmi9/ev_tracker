@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "589185645415",
+    "project_id": "evstationtracker",
+    "storage_bucket": "evstationtracker.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:589185645415:android:c7ce0bbb317b03cc958dc2",
+        "android_client_info": {
+          "package_name": "com.bottomhalf.ev_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "589185645415-mgn6ghan837a82iod00ooo8725jbgf2t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByU-9iKupPPjwzWiHKmU06jYDZwYG7k68"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "589185645415-mgn6ghan837a82iod00ooo8725jbgf2t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
