@@ -1,3 +1,4 @@
+import 'package:ev_tracker/modal/SettingPreferences.dart';
 import 'package:ev_tracker/screens/app_introduction/screens/on_loading_page.dart';
 import 'package:ev_tracker/utilities/NavigationPage.dart';
 import 'package:flutter/material.dart';
@@ -19,26 +20,27 @@ class _AppIntroductionPageState extends State<AppIntroductionPage> {
     OnLoadingPage(
       imgPath: "assets/images/ev_1.jpeg",
       title: 'Electric vehicle station',
-      message1: 'The quickest way to get diagnosed and',
-      message2: 'Treated, from the comfort of your home!',
+      message1: 'Recharge your vehicle and get your nearby vehicle ',
+      message2:
+          'Charging station. Track your route and see station trafic also.',
     ),
     OnLoadingPage(
       imgPath: "assets/images/ev_2.jpg",
       title: 'How to use',
-      message1: 'AccurateDoctor- The fastest way to see your',
-      message2: 'patients virtually',
+      message1: 'Enable your GPS on requested by app. Click trace button',
+      message2: 'By default it will search for electric stations.',
     ),
     OnLoadingPage(
       imgPath: "assets/images/ev_3.jpg",
       title: 'Charging guide',
-      message1: 'To provide quality telehealth services to all ',
-      message2: 'including most secluded areas',
+      message1: 'Update your app status once charging completed.',
+      message2: 'Put your rating and feedback to make a record of it.',
     ),
     OnLoadingPage(
       imgPath: "assets/images/ev_4.jpg",
       title: 'Location station on map',
-      message1: 'Extend access to your healthcare service',
-      message2: 'amid covid-19 with AccurateDoctor',
+      message1: 'Locate electric vehicle station near by your. Observe route and ',
+      message2: 'station traffic and start your trip.',
     ),
   ];
 
@@ -49,16 +51,23 @@ class _AppIntroductionPageState extends State<AppIntroductionPage> {
     );
   }
 
-  void setPreferenceAndLoadLoginPage() {
+  Future<void> setPreferenceAndLoadLoginPage() async {
+    SettingPreferences settings = await SettingPreferences.getSettingDetail();
+    settings.mapZoomValue = 22.0;
+    settings.mapTiltValue = 75.0;
+    settings.defaultSearchKey = "petrol pump";
+    SettingPreferences.update(settings);
+
     SharedPreferences.getInstance().then((pref) {
       pref.setBool("infoScreenCompleted", true);
-      debugPrint("Preferences set successfully");
 
       Navigator.pushNamedAndRemoveUntil(
         context,
         NavigationPage.LoginPage,
-            (route) => false,
+        (route) => false,
       );
+
+      debugPrint("Preferences set successfully");
     });
   }
 
@@ -80,8 +89,8 @@ class _AppIntroductionPageState extends State<AppIntroductionPage> {
             },
           ),
           Positioned(
-            right: -30,
-            bottom: -30,
+            right: 0,
+            bottom: 0,
             child: InkWell(
               onTap: () {
                 if (_activePage != 3) {
@@ -91,11 +100,11 @@ class _AppIntroductionPageState extends State<AppIntroductionPage> {
                 }
               },
               child: Container(
-                height: 100,
-                width: 100,
+                height: 40,
+                width: 60,
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(80),
+                    topLeft: Radius.circular(20),
                     bottomLeft: Radius.circular(0),
                   ),
                   border: Border.all(
@@ -105,9 +114,15 @@ class _AppIntroductionPageState extends State<AppIntroductionPage> {
                   ),
                   color: Colors.yellow,
                 ),
-                child: const Center(
-                  child: Icon(Icons.arrow_forward),
-                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: const [
+                      Icon(
+                        Icons.arrow_forward,
+                      ),
+                    ],
+                  ),
               ),
             ),
           )

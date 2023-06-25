@@ -1,14 +1,20 @@
+import 'dart:convert';
+
+import 'package:ev_tracker/modal/SettingPreferences.dart';
 import 'package:ev_tracker/modal/appData.dart';
 import 'package:ev_tracker/modal/applicationUser.dart';
 import 'package:ev_tracker/screens/dashboard/widgets/car_information.dart';
 import 'package:ev_tracker/screens/dashboard/widgets/info_cards.dart';
 import 'package:ev_tracker/screens/dashboard/widgets/servicing_history.dart';
+import 'package:ev_tracker/service/ajax.dart';
 import 'package:ev_tracker/utilities/NavigationPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class DashboardIndexPage extends StatefulWidget {
-  const DashboardIndexPage();
+  Function? changePage;
+
+  DashboardIndexPage({super.key, required this.changePage});
 
   @override
   _DashboardIndexPageState createState() => _DashboardIndexPageState();
@@ -28,14 +34,24 @@ class _DashboardIndexPageState extends State<DashboardIndexPage> {
     getUserdetail(user);
   }
 
+  void displaySettingDetail(SettingPreferences preferences) {
+    var mapData = preferences.toMap();
+    debugPrint("Preference data: ${jsonEncode(mapData)}");
+  }
+
   void getUserdetail(ApplicationUser user) async {
     // User user = await User.getUser();
+    SettingPreferences preferences = await SettingPreferences.getSettingDetail();
+    displaySettingDetail(preferences);
+    debugPrint("Zoom value: ${preferences.mapZoomValue}");
     setState(() {
       _user = user;
     });
   }
 
-  void _uploadImage() {}
+  void _uploadImage() {
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,23 +72,20 @@ class _DashboardIndexPageState extends State<DashboardIndexPage> {
                     left: 20, right: 20, top: 0, bottom: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "No image found",
+                  children: const [
+                    Text(
+                      "Discover nearby changing stations effortlessly with VoltMate.",
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    MaterialButton(
-                      onPressed: _uploadImage,
-                      color: Colors.white70,
-                      elevation: 0.1,
-                      child: const Text("Upload"),
-                    )
+                    SizedBox(
+                      height: 40,
+                    ),
                   ],
                 ),
               ),
-              const CarInformation(),
+              CarInformation(),
               // ServicingHistory(),
               // const StationRating(),
               Container(
@@ -93,7 +106,9 @@ class _DashboardIndexPageState extends State<DashboardIndexPage> {
             ],
           ),
         ),
-        InfoCards(),
+        InfoCards(
+          func: widget.changePage,
+        ),
       ],
     );
   }

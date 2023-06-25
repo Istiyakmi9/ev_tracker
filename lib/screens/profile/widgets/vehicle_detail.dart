@@ -457,9 +457,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             const ListTile(
-                              title: Text('Modal Detail'),
+                              title: Text('Model Detail'),
                               subtitle: Text(
-                                  'Enter your make, modal and varient detail.'),
+                                  'Enter your make, model and varient detail.'),
                             ),
                             Container(
                               margin: const EdgeInsets.symmetric(
@@ -619,14 +619,31 @@ class _VehicleDetailState extends State<VehicleDetail> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     backgroundColor: Colors.transparent,
-                                    color: Colors.white,
+                                    color: Colors.black87,
                                   ),
                                 )
-                              : const Icon(Icons.save),
+                              : const Icon(
+                                  Icons.save,
+                                  color: Colors.black45,
+                                ),
                           onPressed: _onSubmitted,
                           label: isSaving
-                              ? const Text("Updating ...")
-                              : const Text("Update"),
+                              ? Text(
+                                  "Updating ...",
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSecondary,
+                                  ),
+                                )
+                              : Text(
+                                  "Update",
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSecondary,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

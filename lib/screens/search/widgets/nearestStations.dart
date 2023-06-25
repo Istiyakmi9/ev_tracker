@@ -29,6 +29,7 @@ class _NearestStationsState extends State<NearestStations> {
   final searchKeyController = TextEditingController();
   String? searchKey;
   bool resultStatus = false;
+  Results? selectedSearch;
 
   Future _loadNearByStations(String key) async {
     locationData = await currentLocation.getLocation();
@@ -115,13 +116,16 @@ class _NearestStationsState extends State<NearestStations> {
     // if (!await launchUrlString(googleMapslocationUrl)) {
     //   throw Exception('Could not launch $googleMapslocationUrl');
     // }
+
     Navigator.of(context).pushNamed(
       // NavigationPage.MapIndexPage,
       NavigationPage.MapIndexPage,
       arguments: LocationDetail(
-          locationData: locationData,
-          latitude: destination.geometry!.location!.lat,
-          longitude: destination.geometry!.location!.lng),
+        locationData: locationData,
+        latitude: destination.geometry!.location!.lat,
+        longitude: destination.geometry!.location!.lng,
+        address: selectedSearch!.vicinity,
+      ),
     );
   }
 
@@ -195,6 +199,7 @@ class _NearestStationsState extends State<NearestStations> {
                 return Card(
                   child: ListTile(
                     onTap: () {
+                      selectedSearch = searchResults[index];
                       _openMapPage(index);
                     },
                     leading: Container(
@@ -217,9 +222,11 @@ class _NearestStationsState extends State<NearestStations> {
                       ),
                     ),
                     subtitle: Text(searchResults[index].vicinity!),
-                    trailing: const IconButton(
-                      onPressed: null,
-                      icon: Icon(Icons.person_pin_circle),
+                    trailing: IconButton(
+                      onPressed: () { },
+                      icon: const Icon(
+                        Icons.person_pin_circle,
+                      ),
                     ),
                   ),
                 );

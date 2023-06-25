@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:ev_tracker/modal/appData.dart';
-import 'package:ev_tracker/modal/settings.dart';
+import 'package:ev_tracker/modal/SettingPreferences.dart';
 import 'package:ev_tracker/screens/profile/widgets/settings/search_setting.dart';
 import 'package:ev_tracker/widgets/CustomAppBar.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ class _SettingState extends State<Setting> {
   Ajax ajax = Ajax.getInstance();
   ApplicationUser? _user;
   bool isSaving = false;
-  Settings settings = Settings();
+  SettingPreferences settings = SettingPreferences();
 
   void showPopup(String msg) {
     showDialog(
@@ -91,12 +91,12 @@ class _SettingState extends State<Setting> {
 
   Future<void> getStoredConfigurationDetail(ApplicationUser user) async {
     var pref = await SharedPreferences.getInstance();
-    Settings settingDeStructuredData = Settings();
+    SettingPreferences settingDeStructuredData = SettingPreferences();
     String? data = pref.getString("settingDetail");
     if (data != null) {
       Map<String, dynamic> decodedSettings = jsonDecode(data);
-      settingDeStructuredData = Settings.fromMap(decodedSettings);
-      debugPrint("Zoom value: ${settingDeStructuredData.defaultMapZoomValue}");
+      settingDeStructuredData = SettingPreferences.fromMap(decodedSettings);
+      debugPrint("Zoom value: ${settingDeStructuredData.mapZoomValue}");
     }
 
     setState(() {
@@ -107,14 +107,6 @@ class _SettingState extends State<Setting> {
   }
 
   void showAppInformation() {}
-
-  void _changeDarkModeOption(bool flag) {
-    settings.enableDarkTeam = flag;
-
-    setState(() {
-      settings = settings;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,193 +121,8 @@ class _SettingState extends State<Setting> {
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               child: Form(
                 key: _formKey,
-                child: ListView(
-                  children: [
-                    const Text(
-                      "Map Setting",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blueGrey,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Container(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(
-                        bottom: 2,
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.map_rounded,
-                          color: Colors.lightBlue,
-                        ),
-                        title: const Text(
-                          "Use default google map for tracing",
-                          style: TextStyle(
-                            color: Colors.black54,
-                          ),
-                        ),
-                        trailing: Switch(
-                          // thumb color (round icon)
-                          activeColor: Colors.amber,
-                          activeTrackColor: Colors.cyan,
-                          inactiveThumbColor: Colors.blueGrey.shade600,
-                          inactiveTrackColor: Colors.grey.shade400,
-                          splashRadius: 50.0,
-                          // boolean variable value
-                          value: settings.enableMapTracing,
-                          // changes the state of the switch
-                          onChanged: (value) {},
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Container(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(
-                        bottom: 2,
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.nights_stay_sharp,
-                          color: Colors.indigo,
-                        ),
-                        title: const Text(
-                          "Enable dark mode",
-                          style: TextStyle(
-                            color: Colors.black54,
-                          ),
-                        ),
-                        trailing: Switch(
-                          // thumb color (round icon)
-                          activeColor: Colors.amber,
-                          activeTrackColor: Colors.cyan,
-                          inactiveThumbColor: Colors.blueGrey.shade600,
-                          inactiveTrackColor: Colors.grey.shade400,
-                          splashRadius: 50.0,
-                          // boolean variable value
-                          value: settings.enableDarkTeam,
-                          // changes the state of the switch
-                          onChanged: (value) {
-                            _changeDarkModeOption(value);
-                          },
-                        ),
-                      ),
-                    ),
-                    Container(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(
-                        bottom: 2,
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.numbers,
-                          color: Colors.deepOrange,
-                        ),
-                        title: const Text(
-                          "Map camera zoom value",
-                          style: TextStyle(
-                            color: Colors.black54,
-                          ),
-                        ),
-                        trailing: SizedBox(
-                          width: 40,
-                          child: InkWell(
-                            onTap: () {
-                              showPopup("Set up map zoom value, This value will be used as default for zooming the map.");
-                            },
-                            child: Row(
-                              children: const [
-                                Text(
-                                  "5",
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Icon(Icons.ads_click)
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    SearchSetting(settings: settings,),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    const Text(
-                      "Privacy & Policy",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blueGrey,
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Container(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(
-                        bottom: 2,
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.info_outline),
-                        title: InkWell(
-                          onTap: () {
-                            showPopup("Show app information");
-                          },
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 8.0,
-                            ),
-                            child: Text(
-                              "About this application, application information will display all the necessary data to handle or manage the app.",
-                              style: TextStyle(
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(
-                        bottom: 2,
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.numbers),
-                        title: const Text(
-                          "Map camera zoom value",
-                          style: TextStyle(
-                            color: Colors.black54,
-                          ),
-                        ),
-                        trailing: Switch(
-                          // thumb color (round icon)
-                          activeColor: Colors.amber,
-                          activeTrackColor: Colors.cyan,
-                          inactiveThumbColor: Colors.blueGrey.shade600,
-                          inactiveTrackColor: Colors.grey.shade400,
-                          splashRadius: 50.0,
-                          // boolean variable value
-                          value: true,
-                          // changes the state of the switch
-                          onChanged: (value) {},
-                        ),
-                      ),
-                    ),
-                  ],
+                child: SearchSetting(
+                  settings: settings,
                 ),
               ),
             ),

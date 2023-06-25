@@ -1,7 +1,32 @@
 import 'package:flutter/material.dart';
 
-class CarInformation extends StatelessWidget {
-  const CarInformation({Key? key}) : super(key: key);
+import '../../../service/ajax.dart';
+
+class CarInformation extends StatefulWidget {
+  CarInformation({Key? key}) : super(key: key);
+
+  @override
+  State<CarInformation> createState() => _CarInformationState();
+}
+
+class _CarInformationState extends State<CarInformation> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  final ajax = Ajax.getInstance();
+
+  void loadWeatherDetail() {
+    ajax.get("https://api.open-meteo.com/v1/forecast?latitude=23.692716&longitude=86.977147&current_weather=true&hourly=temperature_2m,relativehumidity_2m,windspeed_10m")
+        .then((value) {
+      if(value != null) {
+
+      } else {
+
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +45,7 @@ class CarInformation extends StatelessWidget {
             ),
             width: double.infinity,
             child: const Text(
-              "Car Information",
+              "Today's Wheather",
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w700,

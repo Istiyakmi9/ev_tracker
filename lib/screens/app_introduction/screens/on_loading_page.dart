@@ -57,6 +57,9 @@ class _OnLoadingPageState extends State<OnLoadingPage> {
                   imgPath!,
                   fit: BoxFit.fitWidth,
                 ),
+                const SizedBox(
+                  height: 40,
+                ),
                 Text(
                   title!,
                   style: const TextStyle(

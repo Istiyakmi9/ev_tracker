@@ -1,5 +1,10 @@
 import 'package:ev_tracker/modal/appData.dart';
 import 'package:ev_tracker/modal/applicationUser.dart';
+import 'package:ev_tracker/screens/dashboard/dashboard_indexpage.dart';
+import 'package:ev_tracker/screens/login/login_indexpage.dart';
+import 'package:ev_tracker/screens/profile/profile_indexpage.dart';
+import 'package:ev_tracker/screens/search/search_indexpage.dart';
+import 'package:ev_tracker/screens/track_history/track_indexpage.dart';
 import 'package:ev_tracker/service/db/DbService.dart';
 import 'package:ev_tracker/utilities/NavigationPage.dart';
 import 'package:ev_tracker/widgets/CustomAppBar.dart';
@@ -65,6 +70,43 @@ class _HomeIndePageState extends State<HomeIndePage> {
     return items;
   }
 
+  void changePage() {
+    debugPrint("change page called");
+    setState(() {
+      pageIndex = NavigationPage.SearchIndex;
+    });
+  }
+
+  Widget getPage(int pageIndex) {
+    late Widget page;
+    switch (pageIndex) {
+      case NavigationPage.DashboardIndex:
+        page = DashboardIndexPage(
+          changePage: changePage,
+        );
+        break;
+      case NavigationPage.ProfileIndex:
+        page = ProfileIndexPage();
+        break;
+      case NavigationPage.SearchIndex:
+        page = SearchIndexPage(); // const MapboxMapIndexPage();
+        break;
+      case NavigationPage.TrackIndex:
+        page = TrackIndexPage();
+        break;
+      case NavigationPage.LoginIndex:
+        page = const LoginIndexPage();
+        break;
+      default:
+        page = DashboardIndexPage(
+          changePage: changePage,
+        );
+        break;
+    }
+
+    return page;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +120,7 @@ class _HomeIndePageState extends State<HomeIndePage> {
         items: _getMenuItems(),
         type: BottomNavigationBarType.fixed,
       ),
-      body: NavigationPage.GetWidgetByIndex(pageIndex),
+      body: getPage(pageIndex),
     );
   }
 }

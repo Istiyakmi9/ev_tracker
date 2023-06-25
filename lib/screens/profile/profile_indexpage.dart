@@ -52,8 +52,8 @@ class ProfileIndexPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Image.asset(
-                        "assets/images/user_profile.png",
-                        width: 40,
+                        "assets/images/profile_user.png",
+                        width: 50,
                       ),
                       const Text("User"),
                     ],
@@ -112,14 +112,22 @@ class ProfileIndexPage extends StatelessWidget {
                   horizontal: gap,
                 ),
                 child: InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      NavigationPage.MapConfiguration,
+                      arguments: null,
+                    );
+                  },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
+                    children: [
                       Icon(
-                        Icons.person_pin_outlined,
+                        Icons.map_sharp,
                         size: 55,
+                        color: Theme.of(context).colorScheme.onBackground,
                       ),
-                      Text("Map Setting"),
+                      const Text("Map Setting"),
                     ],
                   ),
                 ),
@@ -138,15 +146,22 @@ class ProfileIndexPage extends StatelessWidget {
                   horizontal: gap,
                 ),
                 child: InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      NavigationPage.PrivacyAndPolicyPage,
+                      arguments: null,
+                    );
+                  },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Image.asset(
-                        "assets/images/visited.jpeg",
+                        "assets/images/insurance.png",
                         height: imageSize,
                         width: imageSize,
                       ),
-                      Text("Vehicle")
+                      const Text("Privacy & Policy")
                     ],
                   ),
                 ),
@@ -184,39 +199,12 @@ class ProfileIndexPage extends StatelessWidget {
                         height: imageSize,
                         width: imageSize,
                       ),
-                      Text("Setting"),
+                      const Text("Setting"),
                     ],
                   ),
                 ),
               ),
             ),
-            Card(
-              elevation: 0,
-              child: Container(
-                width: cardWidth,
-                height: cardHeight,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 15,
-                ),
-                margin: const EdgeInsets.symmetric(
-                  horizontal: gap,
-                ),
-                child: InkWell(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Image.asset(
-                        "assets/images/station.jpeg",
-                        height: imageSize,
-                        width: imageSize,
-                      ),
-                      Text("Vehicle")
-                    ],
-                  ),
-                ),
-              ),
-            )
           ],
         )
       ],

@@ -1,12 +1,20 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:ev_tracker/modal/Configuration.dart';
+import 'package:ev_tracker/modal/RatingHistory.dart';
+import 'package:ev_tracker/modal/SettingPreferences.dart';
+import 'package:ev_tracker/modal/appData.dart';
+import 'package:ev_tracker/modal/applicationUser.dart';
 import 'package:ev_tracker/modal/locationDetail.dart';
+import 'package:ev_tracker/service/ajax.dart';
+import 'package:ev_tracker/utilities/NavigationPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 
@@ -22,6 +30,7 @@ class MapIndexPage extends StatefulWidget {
 }
 
 class _MapIndexPageState extends State<MapIndexPage> {
+  Ajax ajax = Ajax.getInstance();
   final Map<String, Marker> _markers = {};
   CameraUpdate? cameraUpdate;
   final Completer<GoogleMapController> _mapController = Completer();
@@ -30,7 +39,6 @@ class _MapIndexPageState extends State<MapIndexPage> {
   BitmapDescriptor? _markerbitmap;
   bool _searchingRoute = false;
   bool _navigationStarted = false;
-  double cameraZoomValue = 16.0;
   bool _isReadyToTrack = false;
   double _distance = 0;
   StreamSubscription<LocationData>? listener;
@@ -38,6 +46,14 @@ class _MapIndexPageState extends State<MapIndexPage> {
   Marker? _headerMarker;
   double _tilt = 0;
   double _zoom = 0;
+  RatingHistoryModel ratingHistoryModel = RatingHistoryModel();
+  late SettingPreferences _settings;
+  File? _imageFile;
+  LocationDetail? locationDetail;
+  ApplicationUser? _user;
+  bool _isFeedbackSaving = false;
+
+  final feedBackController = TextEditingController();
 
   List<LatLng> polyLineCoordinates = [];
 
@@ -49,13 +65,16 @@ class _MapIndexPageState extends State<MapIndexPage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      var result = ModalRoute.of(context)!.settings.arguments as LocationDetail;
-      var sourceLat = result.locationData.latitude!;
-      var sourceLng = result.locationData.longitude!;
+      var user = Provider.of<AppData>(context, listen: false).user;
+      locationDetail =
+          ModalRoute.of(context)!.settings.arguments as LocationDetail;
+      var sourceLat = locationDetail!.locationData.latitude!;
+      var sourceLng = locationDetail!.locationData.longitude!;
 
       Source = LatLng(sourceLat, sourceLng);
-      Destination = LatLng(result.latitude!, result.longitude!);
-      buildMapComponents();
+      Destination =
+          LatLng(locationDetail!.latitude!, locationDetail!.longitude!);
+      buildMapComponents(user);
     });
   }
 
@@ -70,8 +89,65 @@ class _MapIndexPageState extends State<MapIndexPage> {
     }
   }
 
+  void _submitFeedback() async {
+    ratingHistoryModel.latitude = currentLocation!.latitude!.toString();
+    ratingHistoryModel.longitude = currentLocation!.longitude!.toString();
+    ratingHistoryModel.visitingAddress = locationDetail!.address!;
+
+    if (_settings.isFeedbackIsMandatory &&
+        ratingHistoryModel!.comment.isEmpty) {
+      Fluttertoast.showToast(msg: "Feedback is mandatory.");
+      setState(() {
+        _isFeedbackSaving = false;
+      });
+
+      return;
+    }
+
+    if (ratingHistoryModel!.comment.length > _settings.feedBackTextLimit) {
+      Fluttertoast.showToast(
+          msg:
+              "Feedback message should be less then ${_settings.feedBackTextLimit} character.");
+      setState(() {
+        _isFeedbackSaving = false;
+      });
+
+      return;
+    }
+
+    var ratingHistory = {
+      "ratingHistoryId": ratingHistoryModel.ratingHistoryId,
+      "userId": _user!.userId,
+      "rating": ratingHistoryModel.rating,
+      "comment": ratingHistoryModel!.comment,
+      "fileId": ratingHistoryModel.fileId,
+      "visitingAddress": ratingHistoryModel!.visitingAddress,
+      "latitude": ratingHistoryModel!.latitude,
+      "longitude": ratingHistoryModel!.longitude
+    };
+
+    await ajax
+        .post("/ratinghistory/addRatingDetail", ratingHistory)
+        .then((result) {
+      if (result != null) {
+        Fluttertoast.showToast(msg: "Your feedback submitted successfully.");
+        Navigator.pop(context);
+      } else {
+        debugPrint(result.toString());
+        setState(() {
+          _isFeedbackSaving = false;
+        });
+        Fluttertoast.showToast(msg: "Fail to submit feedback");
+      }
+    });
+  }
+
   Future<void> getCurrenLocation() async {
     Location location = Location();
+    location.changeSettings(
+        accuracy: LocationAccuracy.navigation,
+        interval: 800,
+        distanceFilter: 0);
     var result = await location.getLocation();
 
     await getPolyPoint(result!.latitude!, result!.longitude!);
@@ -89,6 +165,14 @@ class _MapIndexPageState extends State<MapIndexPage> {
     });
   }
 
+  double degreesToRadians(double degrees) {
+    return degrees * pi / 180.0;
+  }
+
+  double radiansToDegrees(double radians) {
+    return radians * 180.0 / pi;
+  }
+
   double calculateHeading(LatLng start, LatLng end) {
     double startLat = degreesToRadians(start.latitude);
     double endLat = degreesToRadians(end.latitude);
@@ -102,14 +186,6 @@ class _MapIndexPageState extends State<MapIndexPage> {
     double heading = atan2(y, x);
 
     return radiansToDegrees(heading);
-  }
-
-  double degreesToRadians(double degrees) {
-    return degrees * pi / 180.0;
-  }
-
-  double radiansToDegrees(double radians) {
-    return radians * 180.0 / pi;
   }
 
   // Define a function that calculates the bearing angle between two LatLng objects
@@ -151,52 +227,43 @@ class _MapIndexPageState extends State<MapIndexPage> {
         destination,
       );
 
-      var bearingAngle = getBearingAngle(
-          source,
-          destination
-      );
+      var bearingAngle = getBearingAngle(source, destination);
 
-      debugPrint("Camera heading: $heading bearing: $bearingAngle");
+      // debugPrint("Camera heading: $heading bearing: $bearingAngle");
       final GoogleMapController controller = await _mapController.future;
       controller.getZoomLevel().then((value) {
-        if (_zoom == 22) {
-          var cameraPosition = CameraPosition(
-            target: source,
-            tilt: _tilt,
-            zoom: _zoom,
-            // bearing: bearingAngle,
-            bearing: heading,
-          );
+        var cameraPosition = CameraPosition(
+          target: source,
+          tilt: _settings.mapTiltValue,
+          zoom: _settings.mapZoomValue,
+          // bearing: bearingAngle,
+          bearing: heading,
+        );
 
-          controller.animateCamera(
-            CameraUpdate.newCameraPosition(
-              cameraPosition,
-            ),
-          );
+        controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+            cameraPosition,
+          ),
+        );
 
-          _headerMarker = _headerMarker!.copyWith(
+        _headerMarker = _headerMarker!.copyWith(
             rotationParam: bearingAngle,
             positionParam: LatLng(
               polyLineCoordinates[0].latitude,
               polyLineCoordinates[0].longitude,
             ),
-            zIndexParam: 1
-          );
+            zIndexParam: 1);
 
-          double distance = calculateDistance(
-              source.latitude!,
-              source.longitude!,
-              Destination.latitude,
-              Destination.longitude);
+        double distance = calculateDistance(source.latitude!, source.longitude!,
+            Destination.latitude, Destination.longitude);
 
-          // _onCameraMove(cameraPosition);
+        // _onCameraMove(cameraPosition);
 
-          setState(() {
-            currentLocation = presentLocationData;
-            _distance = distance;
-            _navigationStarted = true;
-          });
-        }
+        setState(() {
+          currentLocation = presentLocationData;
+          _distance = distance;
+          _navigationStarted = true;
+        });
       });
     }
   }
@@ -213,16 +280,19 @@ class _MapIndexPageState extends State<MapIndexPage> {
 
     if (result.points.isNotEmpty) {
       result.points.forEach((PointLatLng point) {
-        // debugPrint("Lat: ${point.latitude}, Lng: ${point.longitude}");
         polyLineCoordinates.add(LatLng(point.latitude, point.longitude));
       });
+      debugPrint(
+          "Lat: ${result.points[0].latitude}, Lng: ${result.points[0].longitude}");
     } else {
       debugPrint("----------------   No routes found ---------------");
       debugPrint(result.errorMessage);
     }
   }
 
-  void buildMapComponents() async {
+  void buildMapComponents(ApplicationUser user) async {
+    _settings = await SettingPreferences.getSettingDetail();
+
     final Uint8List? markerIcon =
         await getBytesFromAsset("assets/images/navigation.png", 150);
     var markerBitMap = BitmapDescriptor.fromBytes(markerIcon!);
@@ -247,6 +317,7 @@ class _MapIndexPageState extends State<MapIndexPage> {
       _tilt = 0.0;
       _navigationStarted = false;
       _searchingRoute = false;
+      _user = user;
     });
   }
 
@@ -398,6 +469,109 @@ class _MapIndexPageState extends State<MapIndexPage> {
     return 12742 * asin(sqrt(a));
   }
 
+  Widget ratingWidget() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: 20,
+          horizontal: 30,
+        ),
+        margin: const EdgeInsets.symmetric(
+          vertical: 20,
+        ),
+        child: Column(
+          children: [
+            RatingBar.builder(
+              initialRating: 1,
+              minRating: 1,
+              direction: Axis.horizontal,
+              allowHalfRating: true,
+              itemCount: 5,
+              itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+              itemBuilder: (context, _) => const Icon(
+                Icons.star,
+                color: Colors.amber,
+              ),
+              onRatingUpdate: (rating) {
+                debugPrint("Rating: $rating");
+                ratingHistoryModel.rating = rating;
+              },
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Share more about your experience",
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(
+                top: 8,
+              ),
+              child: TextField(
+                maxLines: 4,
+                maxLength: _settings!.feedBackTextLimit,
+                keyboardType: TextInputType.text,
+                controller: feedBackController,
+                onChanged: (value) {
+                  ratingHistoryModel.comment = value;
+                },
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: "Your comments here"),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                  ),
+                  child: const Text("Close"),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _isFeedbackSaving = true;
+                    });
+                    _submitFeedback();
+                  },
+                  child: _isFeedbackSaving
+                      ? Row(
+                          children: const [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text("Saving..."),
+                          ],
+                        )
+                      : const Text("Save & Exit"),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget mapFooter() {
     return Positioned(
       bottom: 0,
@@ -423,16 +597,18 @@ class _MapIndexPageState extends State<MapIndexPage> {
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: Colors.black,
                             ),
                           )
                         : const Icon(
                             Icons.play_arrow,
-                            color: Colors.white,
                           ),
                     onPressed: () {
+                      debugPrint("Map zoom value: ${_settings!.mapZoomValue}");
+                      debugPrint("Map zoom value: ${_settings!.mapTiltValue}");
                       setState(() {
                         _searchingRoute = true;
+                        _zoom = _settings!.mapZoomValue;
                       });
 
                       getCurrenLocation().then((value) {
@@ -450,7 +626,20 @@ class _MapIndexPageState extends State<MapIndexPage> {
                         if (listener != null) {
                           listener!.cancel();
                         }
-                        Navigator.pop(context);
+                        // Navigator.pop(context);
+
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) {
+                            return FractionallySizedBox(
+                              heightFactor: 0.8,
+                              child: ratingWidget(),
+                            );
+                          },
+                        ).whenComplete(() {
+                          Navigator.pop(context);
+                        });
                       },
                       child: SizedBox(
                         height: 25,

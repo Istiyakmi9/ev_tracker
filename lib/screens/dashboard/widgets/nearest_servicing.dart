@@ -111,9 +111,11 @@ class NearestServicingState extends State<NearestServicing> {
     Navigator.of(context).pushNamed(
       NavigationPage.MapIndexPage,
       arguments: LocationDetail(
-          locationData: locationData,
-          latitude: destination.geometry!.location!.lat,
-          longitude: destination.geometry!.location!.lng),
+        locationData: locationData,
+        latitude: destination.geometry!.location!.lat,
+        longitude: destination.geometry!.location!.lng,
+        address: null,
+      ),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:ev_tracker/modal/SettingPreferences.dart';
 import 'package:ev_tracker/screens/search/widgets/nearestStations.dart';
 import 'package:flutter/material.dart';
 
@@ -9,9 +10,9 @@ class SearchIndexPage extends StatefulWidget {
 }
 
 class _SearchIndexPageState extends State<SearchIndexPage> {
-  List<String> stations = [];
   final searchKeyController = TextEditingController();
   String? searchKey;
+  late SettingPreferences _settings;
 
   @override
   void initState() {
@@ -20,16 +21,13 @@ class _SearchIndexPageState extends State<SearchIndexPage> {
   }
 
   Future loadNearestStations() async {
-    int i = 1;
-    while (i <= 20) {
-      stations.add("Station $i");
-      i++;
-    }
+    _settings = await SettingPreferences.getSettingDetail();
   }
 
   void _filterByKey() {
+    debugPrint(_settings.defaultSearchKey);
     setState(() {
-      searchKey = "petrol pump";
+      searchKey = _settings.defaultSearchKey;
     });
   }
 
@@ -100,7 +98,7 @@ class _SearchIndexPageState extends State<SearchIndexPage> {
               const SizedBox(
                 height: 150,
               ),
-              Image.asset("assets/images/start-up.png"),
+              Image.asset("assets/images/charging.png"),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 25,
@@ -136,15 +134,5 @@ class _SearchIndexPageState extends State<SearchIndexPage> {
               ),
             ],
           );
-
-    // return RefreshIndicator(
-    //   onRefresh: _reloadData,
-    //   child: _flag
-    //       ? const RefreshProgressIndicator()
-    //       : Provider(
-    //           create: (context) => stations,
-    //           child: const NearestStations(),
-    //         ),
-    // );
   }
 }

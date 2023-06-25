@@ -23,33 +23,14 @@ class NavigationPage {
   static const String StationsPage = "stattions";
   static const String HistoryPage = "history";
   static const String NearestServicing = "nearest_servicing";
+  static const String RatingHistoryPage = "ratingHistoryPage";
+  static const String PrivacyAndPolicyPage = "privacyAndPolicyPage";
+  static const String WalletPage = "walletPage";
+  static const String BookingPage = "booking";
 
   static const int DashboardIndex = 0;
   static const int SearchIndex = 1;
   static const int TrackIndex = 2;
   static const int ProfileIndex = 3;
   static const int LoginIndex = 4;
-
-  static Widget GetWidgetByIndex(int pageIndex) {
-    Widget page = DashboardIndexPage();
-    switch (pageIndex) {
-      case NavigationPage.DashboardIndex:
-        page = DashboardIndexPage();
-        break;
-      case NavigationPage.ProfileIndex:
-        page = ProfileIndexPage();
-        break;
-      case NavigationPage.SearchIndex:
-        page = SearchIndexPage(); // const MapboxMapIndexPage();
-        break;
-      case NavigationPage.TrackIndex:
-        page = TrackIndexPage();
-        break;
-      case NavigationPage.LoginIndex:
-        page = LoginIndexPage();
-        break;
-    }
-
-    return page;
-  }
 }

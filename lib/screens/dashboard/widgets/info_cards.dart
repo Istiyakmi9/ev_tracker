@@ -3,44 +3,57 @@ import 'package:ev_tracker/utilities/NavigationPage.dart';
 import 'package:flutter/material.dart';
 
 class InfoCards extends StatelessWidget {
-  InfoCards({Key? key}) : super(key: key);
+  Function? func;
 
-  final List<CardModal> cards = [
+  InfoCards({Key? key, required this.func}) : super(key: key);
+
+  List<CardModal> cards = [
     CardModal(
-        name: "Find Stations",
-        icon: Icons.charging_station,
-        pageName: NavigationPage.SearchPage),
+      name: "Find Stations",
+      icon: Icons.charging_station,
+      isCallback: true,
+      pageName: null,
+    ),
     CardModal(
-        name: "Charging History",
-        icon: Icons.history,
-        pageName: NavigationPage.SearchPage),
+      name: "Feedback History",
+      icon: Icons.history,
+      isCallback: false,
+      pageName: NavigationPage.RatingHistoryPage,
+    ),
     CardModal(
         name: "Map Configuration",
         icon: Icons.map_sharp,
+        isCallback: false,
         pageName: NavigationPage.MapConfiguration),
     CardModal(
         name: "Wallet",
         icon: Icons.wallet,
-        pageName: NavigationPage.SearchPage),
+        isCallback: false,
+        pageName: NavigationPage.WalletPage),
     CardModal(
         name: "My Booking",
         icon: Icons.book_online_outlined,
-        pageName: NavigationPage.SearchPage),
+        isCallback: false,
+        pageName: NavigationPage.BookingPage),
     CardModal(
         name: "Setting",
         icon: Icons.settings,
-        pageName: NavigationPage.SearchPage),
+        isCallback: false,
+        pageName: NavigationPage.SettingsPage),
   ];
 
   Widget cardBody(BuildContext context, CardModal item) {
     return InkWell(
       onTap: () {
-        debugPrint(item.pageName);
-        Navigator.pushNamed(
-          context,
-          item.pageName,
-          arguments: null,
-        );
+        if (item.isCallback) {
+          func!();
+        } else {
+          Navigator.pushNamed(
+            context,
+            item.pageName!,
+            arguments: null,
+          );
+        }
       },
       child: Container(
         alignment: Alignment.center,
@@ -85,11 +98,12 @@ class InfoCards extends StatelessWidget {
 class CardModal {
   late String name;
   late IconData icon;
-  late String pageName;
+  String? pageName;
+  late bool isCallback;
 
-  CardModal({
-    required this.name,
-    required this.icon,
-    required this.pageName,
-  });
+  CardModal(
+      {required this.name,
+      required this.icon,
+      required this.isCallback,
+      required this.pageName});
 }
