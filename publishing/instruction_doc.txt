@@ -1,0 +1,32 @@
+1. Signing key detail
+
+Password: Zvoltm_map_0012
+(base) macworld@MACs-MacBook-Pro ev_tracker % keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \   
+          -keysize 2048 -validity 10000 -alias upload
+Enter keystore password:  
+Re-enter new password: Zvoltm_map_0012
+What is your first and last name?
+  [Unknown]:  zaid rahman
+What is the name of your organizational unit?
+  [Unknown]:  ev map developer
+What is the name of your organization?
+  [Unknown]:  bottomhalf
+What is the name of your City or Locality?
+  [Unknown]:  hyderabad
+What is the name of your State or Province?
+  [Unknown]:  telangana
+What is the two-letter country code for this unit?
+  [Unknown]:  91
+Is CN=zaid rahman, OU=ev map developer, O=bottomhalf, L=hyderabad, ST=telangana, C=91 correct?
+  [no]:  yes
+
+Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
+	for: CN=zaid rahman, OU=ev map developer, O=bottomhalf, L=hyderabad, ST=telangana, C=91
+[Storing /Users/macworld/upload-keystore.jks]
+(base) macworld@MACs-MacBook-Pro ev_tracker % 
+
+
+
+Flycricket:
+Zaid.rahman06@gmail.com
+zaid@rah_001
