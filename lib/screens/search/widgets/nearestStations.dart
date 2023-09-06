@@ -72,8 +72,9 @@ class _NearestStationsState extends State<NearestStations> {
         .nativeGet(
             "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="
             "${locationData.latitude},${locationData.longitude}"
-            "&radius=5000&type=all&"
-            "keyword=$key"
+            "&radius=5000"
+            "&type=all"
+            "&keyword=$key"
             "&key=${Configuration.googleKey}")
         .then((result) {
       if (result != null) {
@@ -190,63 +191,65 @@ class _NearestStationsState extends State<NearestStations> {
       mainAxisSize: MainAxisSize.min,
       children: [
         getFilterWidget(),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            child: ListView.builder(
-              itemCount: searchResults!.length,
-              itemBuilder: (ctx, index) {
-                return Card(
-                  child: ListTile(
-                    onTap: () {
-                      selectedSearch = searchResults[index];
-                      _openMapPage(index);
+        searchResults.isEmpty
+            ? Container(
+                margin: const EdgeInsets.only(
+                  top: 100,
+                ),
+                child: const Text("No result found"),
+              )
+            : Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: ListView.builder(
+                    itemCount: searchResults!.length,
+                    itemBuilder: (ctx, index) {
+                      return Card(
+                        child: ListTile(
+                          onTap: () {
+                            selectedSearch = searchResults[index];
+                            _openMapPage(index);
+                          },
+                          leading: Container(
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 4,
+                            ),
+                            child: SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: Configuration.getImage(
+                                  searchResults[index].icon!),
+                            ),
+                          ),
+                          title: Text(
+                            searchResults[index].name!,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          subtitle: Text(searchResults[index].vicinity!),
+                          trailing: IconButton(
+                            onPressed: () {},
+                            icon: const Icon(
+                              Icons.person_pin_circle,
+                            ),
+                          ),
+                        ),
+                      );
                     },
-                    leading: Container(
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 4,
-                      ),
-                      child: SizedBox(
-                        width: 60,
-                        height: 60,
-                        child:
-                            Configuration.getImage(searchResults[index].icon!),
-                      ),
-                    ),
-                    title: Text(
-                      searchResults[index].name!,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    subtitle: Text(searchResults[index].vicinity!),
-                    trailing: IconButton(
-                      onPressed: () { },
-                      icon: const Icon(
-                        Icons.person_pin_circle,
-                      ),
-                    ),
                   ),
-                );
-              },
-            ),
-          ),
-        ),
+                ),
+              ),
       ],
     );
   }
 
   Widget renderPage() {
     if (resultStatus) {
-      if (searchResults.isEmpty) {
-        return const Center(
-          child: Text("No result found"),
-        );
-      } else {
-        return filterResult();
-      }
+      return filterResult();
     } else {
       return Container(
         margin: const EdgeInsets.only(

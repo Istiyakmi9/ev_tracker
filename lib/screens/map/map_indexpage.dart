@@ -9,7 +9,6 @@ import 'package:ev_tracker/modal/appData.dart';
 import 'package:ev_tracker/modal/applicationUser.dart';
 import 'package:ev_tracker/modal/locationDetail.dart';
 import 'package:ev_tracker/service/ajax.dart';
-import 'package:ev_tracker/utilities/NavigationPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -31,13 +30,13 @@ class MapIndexPage extends StatefulWidget {
 
 class _MapIndexPageState extends State<MapIndexPage> {
   Ajax ajax = Ajax.getInstance();
-  final Map<String, Marker> _markers = {};
   CameraUpdate? cameraUpdate;
   final Completer<GoogleMapController> _mapController = Completer();
-  late List<Marker> _markerList = <Marker>[];
   LocationData? currentLocation;
   BitmapDescriptor? _markerbitmap;
   bool _searchingRoute = false;
+  final sourceMarkerId = const MarkerId("Source_marker");
+  final destinationMarkerId = const MarkerId("Destination_marker");
   bool _navigationStarted = false;
   bool _isReadyToTrack = false;
   double _distance = 0;
@@ -48,10 +47,11 @@ class _MapIndexPageState extends State<MapIndexPage> {
   double _zoom = 0;
   RatingHistoryModel ratingHistoryModel = RatingHistoryModel();
   late SettingPreferences _settings;
-  File? _imageFile;
   LocationDetail? locationDetail;
   ApplicationUser? _user;
   bool _isFeedbackSaving = false;
+
+  final _markers = <MarkerId, Marker>{};
 
   final feedBackController = TextEditingController();
 
@@ -202,22 +202,6 @@ class _MapIndexPageState extends State<MapIndexPage> {
     return angle * (180 / pi);
   }
 
-  void _onCameraMove(CameraPosition position) {
-    double heading = calculateHeading(
-      polyLineCoordinates[0],
-      polyLineCoordinates[1],
-    );
-
-    debugPrint("Marker heading: $heading");
-    _headerMarker = _headerMarker!.copyWith(
-      rotationParam: heading,
-      positionParam: LatLng(
-        polyLineCoordinates[0].latitude,
-        polyLineCoordinates[0].longitude,
-      ),
-    );
-  }
-
   Future<void> moveCamera(LocationData presentLocationData) async {
     if (polyLineCoordinates.isNotEmpty) {
       LatLng source = polyLineCoordinates[0];
@@ -246,13 +230,22 @@ class _MapIndexPageState extends State<MapIndexPage> {
           ),
         );
 
-        _headerMarker = _headerMarker!.copyWith(
-            rotationParam: bearingAngle,
-            positionParam: LatLng(
-              polyLineCoordinates[0].latitude,
-              polyLineCoordinates[0].longitude,
-            ),
-            zIndexParam: 1);
+        // _headerMarker = _headerMarker!.copyWith(
+        //   rotationParam: bearingAngle,
+        //   positionParam: LatLng(
+        //     polyLineCoordinates[0].latitude,
+        //     polyLineCoordinates[0].longitude,
+        //   ),
+        //   zIndexParam: 1,
+        // );
+
+        var sourceMarker = Marker(
+            markerId: sourceMarkerId,
+            position: source,
+            icon: _markerbitmap!,
+            rotation: currentLocation!.heading!,
+            draggable: false,
+        );
 
         double distance = calculateDistance(source.latitude!, source.longitude!,
             Destination.latitude, Destination.longitude);
@@ -263,7 +256,29 @@ class _MapIndexPageState extends State<MapIndexPage> {
           currentLocation = presentLocationData;
           _distance = distance;
           _navigationStarted = true;
+          _markers[sourceMarkerId] = sourceMarker;
         });
+
+        debugPrint("$distance");
+        if(distance < 0.3) {
+          if (listener != null) {
+            listener!.cancel();
+          }
+          // Navigator.pop(context);
+
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) {
+              return FractionallySizedBox(
+                heightFactor: 0.8,
+                child: ratingWidget(),
+              );
+            },
+          ).whenComplete(() {
+            Navigator.pop(context);
+          });
+        }
       });
     }
   }
@@ -294,21 +309,29 @@ class _MapIndexPageState extends State<MapIndexPage> {
     _settings = await SettingPreferences.getSettingDetail();
 
     final Uint8List? markerIcon =
-        await getBytesFromAsset("assets/images/navigation.png", 150);
+        await getBytesFromAsset("assets/images/pulsating_map_icon.png", 150);
     var markerBitMap = BitmapDescriptor.fromBytes(markerIcon!);
-
-    _headerMarker = Marker(
-      markerId: const MarkerId("Source head"),
-      icon: markerBitMap,
-      position: LatLng(Source.latitude, Source.longitude),
-    );
 
     double distance = calculateDistance(Source.latitude!, Source.longitude!,
         Destination.latitude, Destination.longitude);
-    // getBottomSheet();
+    //
+    // final markers = getMapMarker(Source, Destination, markerBitMap);
+
+    var sourceMarker = Marker(
+      markerId: sourceMarkerId,
+      position: Source,
+      icon: markerBitMap,
+    );
+
+    var destinationMarker = Marker(
+      markerId: const MarkerId("Destination"),
+      position: Destination,
+    );
 
     setState(() {
       currentLocation = null;
+      _markers[sourceMarkerId] = sourceMarker;
+      _markers[destinationMarkerId] = destinationMarker;
       _distance = distance;
       _isReadyToTrack = true;
       _markerbitmap = markerBitMap;
@@ -390,33 +413,25 @@ class _MapIndexPageState extends State<MapIndexPage> {
         });
   }
 
-  Set<Marker> getMapMarker(bool isLiveMarker) {
-    Set<Marker> mapMarker;
-    if (isLiveMarker) {
-      mapMarker = {
-        _headerMarker!,
-        // Marker(
-        //   markerId: const MarkerId("Source"),
-        //   position: polyLineCoordinates[0]!,
-        //   icon: _markerbitmap!,
-        //   infoWindow: const InfoWindow(
-        //       title: "Bada Bazaar", snippet: "Bada Bazaar Asansol Market"),
-        // ),
-        Marker(
-          markerId: const MarkerId("Destination"),
-          position: Destination!,
-          infoWindow: const InfoWindow(
-              title: "Bada Bazaar", snippet: "Bada Bazaar Asansol Market"),
-        )
-      };
-    } else {
-      mapMarker = {_headerMarker!};
-    }
+  Map<MarkerId, Marker> getMapMarker(
+      LatLng source, LatLng destination, BitmapDescriptor bitmap) {
+    Map<MarkerId, Marker> mapMarker = <MarkerId, Marker>{};
+
+    mapMarker[sourceMarkerId] = Marker(
+      markerId: sourceMarkerId,
+      position: source,
+      icon: bitmap,
+    );
+
+    mapMarker[sourceMarkerId] = Marker(
+      markerId: const MarkerId("Destination"),
+      position: destination,
+    );
 
     return mapMarker;
   }
 
-  GoogleMap getMap(bool isLiveMarker) {
+  GoogleMap getMap() {
     return GoogleMap(
       initialCameraPosition: CameraPosition(
         target: LatLng(Source.latitude, Source.longitude),
@@ -434,7 +449,7 @@ class _MapIndexPageState extends State<MapIndexPage> {
         _mapController.complete(controller);
         // _mapController!.animateCamera(cameraUpdate!);
       },
-      markers: getMapMarker(isLiveMarker),
+      markers: _markers.values.toSet(),
       polylines: {
         Polyline(
           polylineId: const PolylineId("route"),
@@ -446,15 +461,51 @@ class _MapIndexPageState extends State<MapIndexPage> {
     );
   }
 
+  StreamBuilder<List<Marker>> getStreamMap() {
+    return StreamBuilder<List<Marker>>(
+        stream: null,
+        builder: (context, snapshot) {
+          return GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(Source.latitude, Source.longitude),
+              zoom: _zoom,
+              bearing: 0,
+            ),
+            rotateGesturesEnabled: true,
+            zoomControlsEnabled: true,
+            zoomGesturesEnabled: true,
+            scrollGesturesEnabled: true,
+            compassEnabled: true,
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height * 0.10),
+            onMapCreated: (GoogleMapController controller) {
+              _mapController.complete(controller);
+              // _mapController!.animateCamera(cameraUpdate!);
+            },
+            markers: _markers.values.toSet(),
+            polylines: {
+              Polyline(
+                polylineId: const PolylineId("route"),
+                color: Colors.blueAccent,
+                points: polyLineCoordinates,
+                width: 6,
+              )
+            },
+          );
+        });
+  }
+
   Widget buildBody() {
     if (currentLocation == null) {
       if (!_isReadyToTrack) {
         return const Center(child: RefreshProgressIndicator());
       } else {
-        return getMap(false);
+        return getMap();
+        // return getStreamMap();
       }
     } else {
-      return getMap(true);
+      // return getStreamMap();
+      return getMap();
     }
   }
 

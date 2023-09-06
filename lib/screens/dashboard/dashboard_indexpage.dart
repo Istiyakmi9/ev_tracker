@@ -73,10 +73,13 @@ class _DashboardIndexPageState extends State<DashboardIndexPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
-                    Text(
-                      "Discover nearby changing stations effortlessly with VoltMate.",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: Text(
+                        "Discover nearby changing stations effortlessly with VoltMate.",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     SizedBox(

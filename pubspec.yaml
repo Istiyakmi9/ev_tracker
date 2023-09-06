@@ -17,7 +17,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=2.18.6 <3.0.0'
@@ -39,6 +39,7 @@ dependencies:
   intl: ^0.17.0
   flutter_polyline_points: ^1.0.0
   google_maps_flutter: ^2.2.3
+  # GMSServices.provideAPIKey("AIzaSyAp4VUzqYprG9bUq__hpOzFgIWyH6L5Ulo")
   location: ^4.3.0
   flutter_svg: ^1.1.6
   http: ^0.13.5
@@ -70,6 +71,8 @@ flutter_native_splash:
   ios: true
   web: false
   color: "#42a5f5"
+  # background-image: assert/image
+  # image: assert/image
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +84,11 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+
+flutter_icons:
+  android: "ic_launcher.png"
+  ios: true
+  image_path: "assets/ic_launcher.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -116,6 +124,7 @@ flutter:
     - assets/images/profile_user.png
     - assets/images/unboxing.png
     - assets/images/booking.jpeg
+    - assets/images/pulsating_map_icon.png
   #   - images/a_dot_burr.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

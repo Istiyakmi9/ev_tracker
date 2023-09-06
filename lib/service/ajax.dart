@@ -22,7 +22,7 @@ class Ajax {
 
   static Ajax getInstance() {
     // ajax.setBaseUrl("http://192.168.0.101");
-    ajax.setBaseUrl("http://www.wisdomreadinghall.com");
+    ajax.setBaseUrl("http://www.voltmatehub.com");
     return ajax;
   }
 
@@ -143,6 +143,20 @@ class Ajax {
     if (response.statusCode == 200 || response.statusCode == 201) {
       debugPrint('Get Response: ${response.body}');
       return handleResponse(response.body);
+    } else {
+      debugPrint('Get request failed: $response');
+      return null;
+    }
+  }
+
+  Future<dynamic> getByURL(String url) async {
+    debugPrint(url);
+    var apiUrl = Uri.parse(url);
+    http.Response response = await http.get(apiUrl);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      debugPrint('Get Response: ${response.body}');
+      Map<String, dynamic> json = jsonDecode(response.body);
+      return json;
     } else {
       debugPrint('Get request failed: $response');
       return null;

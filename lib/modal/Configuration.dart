@@ -11,11 +11,14 @@ class Configuration {
   static double fieldGap = 12;
 
   static String mapBoxAccessToken = "";
-  static String mapBoxStyleId = "https://api.mapbox.com/styles/v1/mdistiyak/clh4fek6e00ns01qu7qnq87af/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWRpc3RpeWFrIiwiYSI6ImNsaDNmcHA2ajFtOG4zZ3BqYjNxdjdyb2cifQ.GNeqcfmdG-6RnxKuL6PvCg";
+  static String mapBoxStyleId =
+      "https://api.mapbox.com/styles/v1/mdistiyak/clh4fek6e00ns01qu7qnq87af/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWRpc3RpeWFrIiwiYSI6ImNsaDNmcHA2ajFtOG4zZ3BqYjNxdjdyb2cifQ.GNeqcfmdG-6RnxKuL6PvCg";
 
   // Account used: bottomhalf.mi9@gmail.com
   // Project name in GCP: My Map Project
-  static String googleKey = "AIzaSyAp4VUzqYprG9bUq__hpOzFgIWyH6L5Ulo";
+  // static String googleKey = "AIzaSyAp4VUzqYprG9bUq__hpOzFgIWyH6L5Ulo";
+
+  static String googleKey = "AIzaSyA1sslsBMuyzAjtNi2v-P1eFEvLLMiTi64";
   static const String defaultImgUrl = "assets/images/profile.png";
 
   static void setPagePadding(double value) {
@@ -62,8 +65,7 @@ class Configuration {
             height: 150.0,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              image: DecorationImage(
-                  image: imageProvider, fit: BoxFit.cover),
+              image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
             ),
           ),
           progressIndicatorBuilder: (context, url, downloadProgress) =>

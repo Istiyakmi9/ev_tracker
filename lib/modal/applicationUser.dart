@@ -8,6 +8,7 @@ class ApplicationUser {
   String firstName = Constants.Empty;
   String lastName = Constants.Empty;
   String password = Constants.Empty;
+  String confirmPassword = Constants.Empty;
   DateTime dob = DateTime.now();
   String mobile = Constants.Empty;
   String email = Constants.Empty;
@@ -19,7 +20,7 @@ class ApplicationUser {
   String imageURL = Constants.Empty;
   String accessToken = Constants.Empty;
   String? filePath;
-
+  String fullName = Constants.Empty;
   ApplicationUser();
 
   ApplicationUser.fromUser(

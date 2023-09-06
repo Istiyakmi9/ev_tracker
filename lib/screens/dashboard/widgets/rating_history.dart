@@ -57,7 +57,7 @@ class _RatingHistoryState extends State<RatingHistory> {
 
   Widget getAddressLetterWidget(int index) {
     String letter = "N";
-    if(_ratingHistoryModel[index].visitingAddress.isNotEmpty) {
+    if (_ratingHistoryModel[index].visitingAddress.isNotEmpty) {
       letter = _ratingHistoryModel[index].visitingAddress[0];
     }
     return Text(
@@ -164,10 +164,9 @@ class _RatingHistoryState extends State<RatingHistory> {
                                     left: 10,
                                   ),
                                   child: Column(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         _ratingHistoryModel[index]
@@ -199,7 +198,8 @@ class _RatingHistoryState extends State<RatingHistory> {
                                   children: [
                                     Text(
                                       DateFormat("EEEE").format(
-                                          _ratingHistoryModel[index].feedbackOn),
+                                          _ratingHistoryModel[index]
+                                              .feedbackOn),
                                       style: const TextStyle(
                                         color: Colors.grey,
                                         fontSize: 14,
@@ -207,7 +207,8 @@ class _RatingHistoryState extends State<RatingHistory> {
                                     ),
                                     Text(
                                       DateFormat("d MMM, yyyy").format(
-                                          _ratingHistoryModel[index].feedbackOn),
+                                          _ratingHistoryModel[index]
+                                              .feedbackOn),
                                       style: const TextStyle(
                                         color: Colors.grey,
                                       ),

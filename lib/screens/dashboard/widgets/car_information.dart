@@ -1,4 +1,7 @@
+import 'package:ev_tracker/modal/WeatherResult.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:location/location.dart';
 
 import '../../../service/ajax.dart';
 
@@ -10,20 +13,87 @@ class CarInformation extends StatefulWidget {
 }
 
 class _CarInformationState extends State<CarInformation> {
+  final ajax = Ajax.getInstance();
+  late WeatherResult weatherResult = WeatherResult();
+  late LocationData locationData;
+  Location currentLocation = Location();
+
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await enableGPSGetWeatherDetail();
+    });
   }
 
-  final ajax = Ajax.getInstance();
+  void initDefaultValue() {
+    debugPrint("Call back method invoked");
+  }
 
-  void loadWeatherDetail() {
-    ajax.get("https://api.open-meteo.com/v1/forecast?latitude=23.692716&longitude=86.977147&current_weather=true&hourly=temperature_2m,relativehumidity_2m,windspeed_10m")
+  Future<void> enableGPSGetWeatherDetail() async {
+    try {
+      // enable GPS
+      var future = Future.delayed(const Duration(seconds: 10));
+      var subscription = future.asStream().listen((event) {
+        initDefaultValue();
+      });
+
+      locationData = await currentLocation.getLocation();
+      PermissionStatus permissionGranted;
+      bool serviceEnabled;
+      subscription.cancel();
+
+      serviceEnabled = await currentLocation.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await currentLocation.requestService();
+        if (!serviceEnabled) {
+          return;
+        }
+      }
+
+      permissionGranted = await currentLocation.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await currentLocation.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          return;
+        }
+      }
+
+      try {
+        debugPrint("Inside function");
+        await currentLocation.getLocation().then((value) {
+          debugPrint(value.latitude.toString());
+        });
+        debugPrint("Done");
+      } on PlatformException catch (e) {
+        debugPrint(e.code);
+      }
+
+      debugPrint(
+          "Latitude: ${locationData.latitude}, Longitude: ${locationData.longitude}");
+
+      await _loadWeatherDetail(locationData);
+    } on Exception catch (_) {
+      debugPrint("Fail to enable GPS");
+    }
+  }
+
+  Future<void> _loadWeatherDetail(LocationData locationData) async {
+    await ajax
+        .getByURL("https://api.open-meteo.com/v1/forecast?latitude="
+            "${locationData.latitude}"
+            "&longitude="
+            "${locationData.longitude}"
+            "&current_weather=true&hourly=temperature_2m,relativehumidity_2m,windspeed_10m")
         .then((value) {
-      if(value != null) {
-
+      if (value != null) {
+        var result = WeatherResult.fromJson(value);
+        setState(() {
+          weatherResult = result;
+        });
       } else {
-
+        debugPrint("Fail to get weather data");
       }
     });
   }
@@ -45,7 +115,7 @@ class _CarInformationState extends State<CarInformation> {
             ),
             width: double.infinity,
             child: const Text(
-              "Today's Wheather",
+              "Today's Weather",
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w700,
@@ -58,21 +128,29 @@ class _CarInformationState extends State<CarInformation> {
               Column(
                 children: [
                   Row(
-                    children: const [
-                      Icon(
+                    children: [
+                      const Icon(
                         Icons.wind_power_sharp,
                         color: Colors.green,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 4,
                       ),
-                      Text(
-                        "87%",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                      if (weatherResult.current_weather == null)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Text("0.0km/h"),
+                        )
+                      else
+                        Text(
+                          "${weatherResult?.current_weather?.windspeed}"
+                          "${weatherResult?.hourly_units?.windspeed_10m}",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(
@@ -84,18 +162,26 @@ class _CarInformationState extends State<CarInformation> {
               Column(
                 children: [
                   Row(
-                    children: const [
-                      Icon(
+                    children: [
+                      const Icon(
                         Icons.thermostat_outlined,
                         color: Colors.redAccent,
                       ),
-                      Text(
-                        "25",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                      if (weatherResult.current_weather == null)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Text("0.0" + "\u2103"),
+                        )
+                      else
+                        Text(
+                          "${weatherResult?.current_weather?.temperature}"
+                          "${weatherResult?.hourly_units?.temperature_2m}",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(
@@ -107,18 +193,26 @@ class _CarInformationState extends State<CarInformation> {
               Column(
                 children: [
                   Row(
-                    children: const [
-                      Icon(
+                    children: [
+                      const Icon(
                         Icons.water_drop,
                         color: Colors.blue,
                       ),
-                      Text(
-                        "69%",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                      if (weatherResult.current_weather == null)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(),
+                        )
+                      else
+                        Text(
+                          "${weatherResult?.current_weather?.windspeed}"
+                          "${weatherResult?.hourly_units?.relativehumidity_2m}",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(

@@ -9,6 +9,8 @@ import 'package:ev_tracker/screens/booking/booking_indexpage.dart';
 import 'package:ev_tracker/screens/dashboard/widgets/nearest_servicing.dart';
 import 'package:ev_tracker/screens/dashboard/widgets/rating_history.dart';
 import 'package:ev_tracker/screens/login/login_indexpage.dart';
+import 'package:ev_tracker/screens/login/resetpassword_indexpage.dart';
+import 'package:ev_tracker/screens/login/signup_indexpage.dart';
 import 'package:ev_tracker/screens/map/map_configuration.dart';
 import 'package:ev_tracker/screens/map/map_indexpage.dart';
 import 'package:ev_tracker/screens/profile/profile_indexpage.dart';
@@ -56,6 +58,9 @@ Future<void> configureAppData() async {
 
   SettingPreferences.cleanSetting();
   SettingPreferences settings = await SettingPreferences.getSettingDetail();
+  if (settings.durationForRatingInDays == 0) {
+    settings.durationForRatingInDays = 90;
+  }
   SettingPreferences.update(settings);
 }
 
@@ -97,6 +102,8 @@ class MyApp extends StatelessWidget {
         NavigationPage.PrivacyAndPolicyPage: (_) => PrivacyAndPolicy(),
         NavigationPage.WalletPage: (_) => const Wallet(),
         NavigationPage.BookingPage: (_) => const Booking(),
+        NavigationPage.SignUpIndexPage: (_) => const UserSignup(),
+        NavigationPage.ResetPasswordPage: (_) => const ResetPassword(),
         NavigationPage.HomePage: (_) =>
             HomeIndePage(NavigationPage.DashboardIndex),
       },

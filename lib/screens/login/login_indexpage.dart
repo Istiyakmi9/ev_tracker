@@ -5,6 +5,7 @@ import 'package:ev_tracker/service/ajax.dart';
 import 'package:ev_tracker/utilities/NavigationPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
@@ -37,16 +38,23 @@ class _LoginIndexPageState extends State<LoginIndexPage> {
       "mobile": _user.mobile,
       "password": _user.password
     }).then((value) async {
-      _user = ApplicationUser.fromJson(value);
-      Provider.of<AppData>(context, listen: false).updateUser(_user);
-      if (db.addUser(_user)) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          NavigationPage.HomePage,
-          (route) => false,
-        );
+      if (value != null) {
+        _user = ApplicationUser.fromJson(value);
+        Provider.of<AppData>(context, listen: false).updateUser(_user);
+        if (db.addUser(_user)) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            NavigationPage.HomePage,
+                (route) => false,
+          );
+        } else {
+          debugPrint("Fail to add record into database");
+        }
       } else {
-        debugPrint("Fail to add record into database");
+        Fluttertoast.showToast(msg: "Invalid username or password");
+        setState(() {
+          isSigning = false;
+        });
       }
     }).catchError((error) {
       setState(() {
@@ -258,6 +266,9 @@ class _LoginIndexPageState extends State<LoginIndexPage> {
       }
     } else {
       showPopup("Got some internal error.");
+      setState(() {
+        isSigning = false;
+      });
     }
   }
 
@@ -276,242 +287,315 @@ class _LoginIndexPageState extends State<LoginIndexPage> {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 40),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Electric Vehicle Station Locator",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 40, horizontal: 20),
-                    child: const Text(
-                      "Welcome to electric vehicle station location and traffic system tracker.",
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(
+              top: 150,
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Electric Vehicle Station Locator",
                       style: TextStyle(
-                        color: Colors.white54,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(
                         color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
                       ),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        hintText: "Enter user mobile no#",
-                        hintStyle: TextStyle(color: Colors.white54),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                          color: Colors.white,
-                          width: 1.0,
-                        )),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.white, width: 1.0),
+                      textAlign: TextAlign.center,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 40, horizontal: 20),
+                      child: const Text(
+                        "Welcome to electric vehicle station location and traffic system tracker.",
+                        style: TextStyle(
+                          color: Colors.white54,
                         ),
                       ),
-                      textInputAction: TextInputAction.next,
-                      onSaved: (value) {
-                        _user.mobile = value!;
-                      },
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      style: const TextStyle(
-                        color: Colors.white,
-                      ),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.phone_android_outlined,
+                            color: Colors.white,
+                          ),
+                          border: OutlineInputBorder(),
+                          fillColor: Colors.white,
+                          hintText: "Enter user mobile no#",
+                          hintStyle: TextStyle(color: Colors.white54),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
                             color: Colors.white,
                             width: 1.0,
+                          )),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.white, width: 1.0),
                           ),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.white, width: 1.0),
-                        ),
-                        hintText: "Enter password",
-                        hintStyle: TextStyle(color: Colors.white54),
+                        textInputAction: TextInputAction.next,
+                        onSaved: (value) {
+                          _user.mobile = value!;
+                        },
                       ),
-                      obscureText: true,
-                      obscuringCharacter: "*",
-                      onSaved: (value) {
-                        _user.password = value!;
-                      },
                     ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    height: 60,
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: _onSubmitted,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white60,
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.key_outlined,
+                            color: Colors.white,
+                          ),
+                          border: OutlineInputBorder(),
+                          fillColor: Colors.white,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white,
+                              width: 1.0,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.white, width: 1.0),
+                          ),
+                          hintText: "Enter password",
+                          hintStyle: TextStyle(color: Colors.white54),
+                        ),
+                        obscureText: true,
+                        obscuringCharacter: "*",
+                        onSaved: (value) {
+                          _user.password = value!;
+                        },
                       ),
-                      child: isSigning
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    backgroundColor: Colors.transparent,
-                                    color: Colors.white,
+                    ),
+                    Container(
+                      width: double.infinity,
+                      height: 60,
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        onPressed: _onSubmitted,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white60,
+                        ),
+                        child: isSigning
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      backgroundColor: Colors.transparent,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(
-                                  width: 15,
-                                ),
-                                Text(
-                                  "Signing ...",
-                                  style: TextStyle(
-                                    color: Colors.white,
+                                  SizedBox(
+                                    width: 15,
                                   ),
-                                )
-                              ],
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.subdirectory_arrow_right,
-                                  color:
-                                      Theme.of(context).colorScheme.onSecondary,
-                                ),
-                                const SizedBox(
-                                  width: 15,
-                                ),
-                                Text(
-                                  "Sign in",
-                                  style: TextStyle(
+                                  Text(
+                                    "Signing ...",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                ],
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.subdirectory_arrow_right,
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onSecondary,
                                   ),
-                                )
-                              ],
-                            ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 40,
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(
-                      top: 20,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const [
-                        Text(
-                          "Please read terms and condition given link below",
-                          style: TextStyle(
-                            color: Colors.white54,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Text(
-                          "Few more information",
-                          style: TextStyle(
-                            color: Colors.white54,
-                          ),
-                        ),
-                        Text(
-                          "Terms & Condition",
-                          style: TextStyle(
-                            color: Colors.lightBlue,
-                            fontWeight: FontWeight.bold,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(
-                      top: 10,
-                    ),
-                    height: 60,
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _googleAuthenticate();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
+                                  const SizedBox(
+                                    width: 15,
+                                  ),
+                                  Text(
+                                    "Sign in",
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSecondary,
+                                    ),
+                                  )
+                                ],
+                              ),
                       ),
-                      child: isSigning
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    backgroundColor: Colors.transparent,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 15,
-                                ),
-                                Text(
-                                  "Signing ...",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                )
-                              ],
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Image(
-                                  image: AssetImage('assets/images/google.png'),
-                                  color: Colors.white,
-                                  width: 25,
-                                  height: 25,
-                                ),
-                                SizedBox(
-                                  width: 15,
-                                ),
-                                Text(
-                                  "Sign in with Google",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                )
-                              ],
-                            ),
                     ),
-                  ),
-                ],
+                    const SizedBox(
+                      height: 40,
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(
+                        top: 20,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Please read terms and condition given link below",
+                            style: TextStyle(
+                              color: Colors.white54,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Wrap(
+                            children: [
+                              const Text(
+                                "For new registration:",
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    NavigationPage.SignUpIndexPage,
+                                        (route) => false,
+                                  );
+                                },
+                                child: const Text(
+                                  "Sign up now",
+                                  style: TextStyle(
+                                    color: Colors.lightBlue,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Wrap(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    NavigationPage.ResetPasswordPage,
+                                        (route) => false,
+                                  );
+                                },
+                                child: const Text(
+                                  "Click to reset password",
+                                  style: TextStyle(
+                                    color: Colors.lightBlue,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          const Text(
+                            "Few more information",
+                            style: TextStyle(
+                              color: Colors.white54,
+                            ),
+                          ),
+                          const Text(
+                            "Terms & Condition",
+                            style: TextStyle(
+                              color: Colors.lightBlue,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(
+                        top: 10,
+                      ),
+                      height: 60,
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _googleAuthenticate();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                        ),
+                        child: isSigning
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      backgroundColor: Colors.transparent,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Text(
+                                    "Signing ...",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                ],
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Image(
+                                    image:
+                                        AssetImage('assets/images/google.png'),
+                                    color: Colors.white,
+                                    width: 25,
+                                    height: 25,
+                                  ),
+                                  SizedBox(
+                                    width: 15,
+                                  ),
+                                  Text(
+                                    "Sign in with Google",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                ],
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

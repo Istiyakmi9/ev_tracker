@@ -1,6 +1,5 @@
 import 'package:ev_tracker/screens/dashboard/dashboard_indexpage.dart';
 import 'package:ev_tracker/screens/login/login_indexpage.dart';
-import 'package:ev_tracker/screens/map/mmap_indexpage.dart';
 import 'package:ev_tracker/screens/profile/profile_indexpage.dart';
 import 'package:ev_tracker/screens/track_history/track_indexpage.dart';
 import 'package:ev_tracker/screens/search/search_indexpage.dart';
@@ -27,6 +26,8 @@ class NavigationPage {
   static const String PrivacyAndPolicyPage = "privacyAndPolicyPage";
   static const String WalletPage = "walletPage";
   static const String BookingPage = "booking";
+  static const String SignUpIndexPage = "signup";
+  static const String ResetPasswordPage = "resetPasswordPage";
 
   static const int DashboardIndex = 0;
   static const int SearchIndex = 1;

@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "589185645415-mgn6ghan837a82iod00ooo8725jbgf2t.apps.googleusercontent.com",
+          "client_id": "589185645415-m4v9u578lh7usihs8k3k3nracscglddu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bottomhalf.ev_tracker",
+            "certificate_hash": "16d577544f0e4b01d57b1d6ec932ac2e0d977cf0"
+          }
+        },
+        {
+          "client_id": "589185645415-sp835jb0gvaqolaq4lcinqh9171gldhp.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -29,6 +37,13 @@
             {
               "client_id": "589185645415-mgn6ghan837a82iod00ooo8725jbgf2t.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "589185645415-7u1mfe2h11f84tdda831ss62kfkkv0c2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bottomhalf.evTracker"
+              }
             }
           ]
         }
